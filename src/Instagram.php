@@ -121,6 +121,7 @@ class Instagram {
         $curl->setReturnTransfer(true);
         $curl->setSSLVerifypeer(false);
         $jsonData = $curl->getResponse();
+        $curl->close();
         if($jsonData !== false){
             return json_decode($jsonData);
         }
@@ -147,10 +148,9 @@ class Instagram {
         }
 
         $url = self::API_URL . $function . $authMethod . (('GET' === $method) ? $paramString : null);
-
         // signed header of POST/DELETE requests
         $headerData = $this->getJsonHeader();
-        if (true === $this->signedheader) {
+        if (true === $this->signedheader && 'GET' !== $method) {
             $headerData[] = 'X-Insta-Forwarded-For: ' . $this->getSignHeader();
         }
         $curl = new Curl($url);
@@ -166,12 +166,20 @@ class Instagram {
         }
 
         $jsonData = $curl->getResponse();
-
+        $curl->close();
         if(false === $jsonData){
             return false;
         }
         return json_decode($jsonData);
     }
+
+    /**
+     * get user media
+     * @param string|int $id
+     * @param int $limit
+     * @return bool|mixed
+     * @throws Exception
+     */
     public function getUserMedia($id = 'self', $limit = 0){
         return $this->call('users/'.$id.'/media/recent', ($id === 'self'), array('count' => $limit));
     }
@@ -204,6 +212,7 @@ class Instagram {
      */
     private function getSignHeader(){
         $ipAddress = $_SERVER['SERVER_ADDR'];
+        echo $ipAddress;
         $signature = hash_hmac('sha256', $ipAddress, $this->object->getClientSecret(), false);
         return join('|', array($ipAddress, $signature));
     }
