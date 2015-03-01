@@ -126,6 +126,15 @@ class Instagram {
         }
         return false;
     }
+
+    /**
+     * @param $function
+     * @param $auth
+     * @param null $params
+     * @param string $method
+     * @return bool|mixed
+     * @throws Exception
+     */
     protected function call($function, $auth, $params = null,  $method = 'GET'){
         if(false === $auth){
             $authMethod = '?client_id='.$this->object->getClientId();
@@ -172,17 +181,46 @@ class Instagram {
         return json_decode($jsonData);
     }
 
+
     /**
-     * get user media
-     * @param string|int $id
-     * @param int $limit
-     * @return bool|mixed
+     * @param string $id
+     * @param array $params
+     * @return bool|array
      * @throws Exception
      */
-    public function getUserMedia($id = 'self', $limit = 0){
-        return $this->call('users/'.$id.'/media/recent', ($id === 'self'), array('count' => $limit));
-    }
+    public function getUserFollows($id = 'self', $params = array()){
+        return $this->call('users/' . $id . '/follows', true, $params);
 
+    }
+    /**
+     * @param string $id
+     * @param array $params
+     * @return bool|array
+     * @throws Exception
+     */
+    public function getUserFollower($id = 'self', $params = array()){
+        return $this->call('users/' . $id . '/followed-by', true, $params);
+
+    }
+    /**
+     * @param string $id
+     * @param array $params
+     * @return bool|array
+     * @throws Exception
+     */
+    public function getUserRelationship($id = 'self', $params = array()){
+        return $this->call('users/' . $id . '/relationship', true, $params);
+
+    }/**
+     * @param string $id
+     * @param array $params action => 'follow/unfollow/block/unblock/approve/ignore'
+     * @return bool|array
+     * @throws Exception
+     */
+    public function setUserRelationship($id = 'self', $params = array()){
+        return $this->call('users/' . $id . '/relationship', true, $params, 'POST');
+
+    }
     /**
      * @return array
      */
