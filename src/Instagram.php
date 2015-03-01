@@ -5,7 +5,6 @@
  * Date: 23/02/15
  * Time: 20:17
  */
-require_once 'Curl.php';
 
 class Instagram {
     /**
