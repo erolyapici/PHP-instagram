@@ -7,7 +7,9 @@
  */
 
 class RelationShip extends Instagram{
-
+    /**
+     * @param InstagramConfig $object
+     */
     public function __construct(InstagramConfig $object){
         parent::__construct($object);
     }
