@@ -26,22 +26,12 @@ class User extends Instagram{
      * Get the most recent media published by a user.
      * May return a mix of both image and video types.
      * @param string $id
-     * @param int $count
-     * @param int $max_timestamp
-     * @param int $min_time_stamp
-     * @param int $min_id
-     * @param int $max_id
+     * @param array params count|max_timestamp|min_time_stamp|min_id|max_id
      * @return bool|mixed
      * @throws Exception
      */
-    public function getMedia($id = 'self', $count = 0, $max_timestamp = 0, $min_time_stamp = 0, $min_id = 0, $max_id = 0 ){
-        return $this->call('users/' . $id . '/media/recent', ($id === 'self'), array(
-            'count' => $count,
-            'max_timestamp' => $max_timestamp,
-            'min_timestamp' => $min_time_stamp,
-            'min_id' => $min_id,
-            'max_id' => $max_id,
-        ));
+    public function getMedia($id = 'self', $params = array()){
+        return $this->call('users/' . $id . '/media/recent', ($id === 'self'), $params);
     }
 
     /**

@@ -24,7 +24,7 @@ class Instagram {
     /**
      * @var InstagramConfig
      */
-    private $object;
+    protected $object;
     /**
      * The user access token
      *
@@ -56,6 +56,9 @@ class Instagram {
      * @var array
      */
     private  $params = array();
+
+    private $error;
+    private $error_no;
 
     public function __construct(InstagramConfig $object){
         $this->object = $object;
@@ -137,7 +140,7 @@ class Instagram {
      */
     protected function call($function, $auth, $params = null,  $method = 'GET'){
         if(false === $auth){
-            $authMethod = '?client_id='.$this->object->getClientId();
+            $authMethod = '?client_id='.$this->object->getClientId().'&client_secret='.$this->object->getClientSecret();
         }else{
             if($this->getAccessToken() !== null){
                 $authMethod = '?access_token='.$this->getAccessToken();
@@ -146,9 +149,9 @@ class Instagram {
             }
         }
 
-        if(empty($params)){
-           $params = $this->getParams();
-        }
+        $this->setParams(array_merge($this->getParams(), $params));
+        $params = $this->getParams();
+
         if (isset($params) && is_array($params)) {
             $paramString = '&' . http_build_query($params);
         } else {
@@ -158,8 +161,8 @@ class Instagram {
         $url = self::API_URL . $function . $authMethod . (('GET' === $method) ? $paramString : null);
         // signed header of POST/DELETE requests
         $headerData = $this->getJsonHeader();
-        if (true === $this->signedheader && 'GET' !== $method) {
-            $headerData[] = 'X-Insta-Forwarded-For: ' . $this->getSignHeader();
+        if (true === $this->signedheader) {
+           $headerData[] = 'X-Insta-Forwarded-For: ' . $this->getSignHeader();
         }
         $curl = new Curl($url);
         $curl->setHttpHeader($headerData);
@@ -169,11 +172,13 @@ class Instagram {
 
         if('POST' === $method){
             $curl->setPost($params);
-        }else{
+        }elseif($method !== 'GET'){
             $curl->setCustomRequest('DELETE');
         }
 
         $jsonData = $curl->getResponse();
+        $this->error = $curl->getError();
+        $this->error_no = $curl->getErrorNo();
         $curl->close();
         if(false === $jsonData){
             return false;
@@ -181,6 +186,12 @@ class Instagram {
         return json_decode($jsonData);
     }
 
+    public function getErrors(){
+        return $this->error;
+    }
+    public function getErrorNo(){
+        return $this->error_no;
+    }
 
     /**
      * @param string $id
@@ -248,8 +259,7 @@ class Instagram {
      * @return string
      */
     private function getSignHeader(){
-        $ipAddress = $_SERVER['SERVER_ADDR'];
-        echo $ipAddress;
+        $ipAddress = '123.123.123.123';
         $signature = hash_hmac('sha256', $ipAddress, $this->object->getClientSecret(), false);
         return join('|', array($ipAddress, $signature));
     }
